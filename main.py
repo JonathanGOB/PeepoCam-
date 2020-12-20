@@ -2,18 +2,9 @@ from tkinter import Tk, Label, PhotoImage, Canvas
 from tkinter.constants import CENTER
 from PIL import Image
 from PIL import ImageTk
-from ctypes import windll, Structure, c_long, byref
 from threading import Thread
 import pyautogui
-class POINT(Structure):
-    _fields_ = [("x", c_long), ("y", c_long)]
-
-
-
-def queryMousePosition():
-    pt = POINT()
-    windll.user32.GetCursorPos(byref(pt))
-    return { "x": pt.x, "y": pt.y}
+import time
 
 class PeepoCam:
 
@@ -40,7 +31,7 @@ class PeepoCam:
         self.canvas.create_image(self.background.width() - 220, self.background.height() - 220, anchor=CENTER, image=self.mousepad)
         self.mouseMove = self.canvas.create_image(self.background.width() - 220, self.background.height() - 240, anchor=CENTER, image=self.mouse)
         self.armRightMove = self.canvas.create_image(650, 550, anchor=CENTER, image=self.armRight)
-        self.canvas.create_image(self.background.width()/2 - 40, self.background.height()/2 - 33, anchor=CENTER, image=self.peepo)
+        self.canvas.create_image(self.background.width()/2 - 40, self.background.height()/2 - 32, anchor=CENTER, image=self.peepo)
         self.canvas.create_image(self.background.width() - 550, self.background.height() - 180, anchor=CENTER, image=self.keyboard)
         self.armLeftMove = self.canvas.create_image(375, 600, anchor=CENTER, image=self.armLeft)
 
@@ -51,14 +42,53 @@ class PeepoCam:
         thread.start()
     
     def move_mousearm(self):
+        quadrants = [False, False, False, False]
         while True:
             width, height = 450, 450
             x, y = ((self.background.width() - 220) - width/2), ((self.background.height() - 220) - height/2)
             screenwidth, screenheight = 1920, 1080
             xmouse, ymouse = pyautogui.position()
-            translatedWidthSteps, translateHeightSteps = width/screenwidth, height/screenheight
-            print(x + (xmouse*translatedWidthSteps), y + (ymouse*translateHeightSteps))
-            self.canvas.move(self.mouseMove, x + (xmouse*translatedWidthSteps), y + (ymouse*translateHeightSteps))
+            if (xmouse > screenwidth/2 and ymouse > screenheight/2 and quadrants[0] != True):
+                self.canvas.move(self.mouseMove, -30, -30)
+                self.canvas.move(self.armRightMove, -30, -30)
+                self.reset(quadrants)
+                quadrants[0] = True
+            if (xmouse > screenwidth/2 and ymouse < screenheight/2 and quadrants[1] != True):
+                self.canvas.move(self.mouseMove, -30, 30)
+                self.canvas.move(self.armRightMove, -30, 30)
+                self.reset(quadrants)
+                quadrants[1] = True
+            if (xmouse < screenwidth/2 and ymouse > screenheight/2 and quadrants[2] != True):
+                self.canvas.move(self.mouseMove, 30, -30)
+                self.canvas.move(self.armRightMove, 30, -30)
+                self.reset(quadrants)
+                quadrants[2] = True
+            if (xmouse < screenwidth/2 and ymouse < screenheight/2 and quadrants[3] != True):
+                self.canvas.move(self.mouseMove, 30, 30)
+                self.canvas.move(self.armRightMove, 30, 30)   
+                self.reset(quadrants)
+                quadrants[3] = True
+
+            time.sleep(0.1)
+            print(quadrants)
+    
+    def reset(self, quadrants):
+        if(quadrants[0] == True):
+            self.canvas.move(self.mouseMove, 30, 30)
+            self.canvas.move(self.armRightMove, 30, 30)
+            quadrants[0] = False
+        if(quadrants[1] == True):
+            self.canvas.move(self.mouseMove, 30, -30)
+            self.canvas.move(self.armRightMove, 30, -30)
+            quadrants[1] = False
+        if(quadrants[2] == True):
+            self.canvas.move(self.mouseMove, -30, 30)
+            self.canvas.move(self.armRightMove, -30, 30)
+            quadrants[2] = False
+        if(quadrants[3] == True):
+            self.canvas.move(self.mouseMove, -30, -30)
+            self.canvas.move(self.armRightMove, -30, -30)
+            quadrants[3] = False
 
 
     def create_resized_image(self, filename, width, height, angle=0):
