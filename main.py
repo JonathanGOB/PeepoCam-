@@ -70,7 +70,6 @@ class PeepoCam:
                 quadrants[3] = True
 
             time.sleep(0.1)
-            print(quadrants)
     
     def reset(self, quadrants):
         if(quadrants[0] == True):
