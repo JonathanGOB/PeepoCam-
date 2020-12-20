@@ -1,7 +1,7 @@
 from tkinter import Tk, Label, PhotoImage, Canvas
 from tkinter.constants import CENTER
 from PIL import Image
-from PIL import ImageTk
+from PIL import ImageTk, ImageOps
 from threading import Thread
 import pyautogui
 import time
@@ -18,7 +18,7 @@ class PeepoCam:
         self.armLeft = PhotoImage(file="peepo\\arms_rm.png")
         self.keyboard = self.create_resized_image("peepo\\keyboard.png", 800, 800)
         self.mousepad = self.create_resized_image("peepo\\mousemat_rm.png", 450, 450, angle=10)
-        self.mouse = self.create_resized_image("peepo\\mouse.png", PhotoImage(file="peepo\\mouse.png").width(), PhotoImage(file="peepo\\mouse.png").height(), 180)
+        self.mouse = self.create_resized_image("peepo\\mouse.png", PhotoImage(file="peepo\\mouse.png").width(), PhotoImage(file="peepo\\mouse.png").height(), 300, mirror=True)
         self.armRight = PhotoImage(file="peepo\\arms_rm.png")
         self.peepo = PhotoImage(file="peepo\\peepo_half_white_removed.png")
         self.table = PhotoImage(file="peepo\\table.png")
@@ -92,8 +92,10 @@ class PeepoCam:
             quadrants[3] = False
 
 
-    def create_resized_image(self, filename, width, height, angle=0):
+    def create_resized_image(self, filename, width, height, angle=0, mirror=False):
         img = Image.open(filename)
+        if mirror:
+            img = ImageOps.mirror(img)
         img = img.resize((width,height), Image.ANTIALIAS)
         return ImageTk.PhotoImage(img.rotate(angle))
 
