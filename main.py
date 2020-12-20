@@ -100,7 +100,7 @@ class PeepoCam:
     def keyboard_press(self, event):
 
         if not self.keysPressed:
-            self.keysPressed = event.char
+            self.keysPressed = event
             self.canvas.move(self.armLeftMove, 10, 20)
 
     def keyboard_up(self, event):
