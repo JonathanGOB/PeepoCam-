@@ -36,7 +36,7 @@ class PeepoCam:
         self.canvas.create_image(self.background.width() - 550, self.background.height() - 180, anchor=CENTER, image=self.keyboard)
         self.armLeftMove = self.canvas.create_image(375, 600, anchor=CENTER, image=self.armLeft)
 
-        listener = Listener(on_press=self.keyboard_press, on_release=self.keyboard_up,suppress=True)
+        listener = Listener(on_press=self.keyboard_press, on_release=self.keyboard_up)
         listener.start()
 
         thread = Thread(target = self.move_mousearm)
