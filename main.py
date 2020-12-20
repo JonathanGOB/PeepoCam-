@@ -5,6 +5,7 @@ from PIL import ImageTk
 from threading import Thread
 import pyautogui
 import time
+from pynput.keyboard import Key, Listener, Controller
 
 class PeepoCam:
 
@@ -35,8 +36,9 @@ class PeepoCam:
         self.canvas.create_image(self.background.width() - 550, self.background.height() - 180, anchor=CENTER, image=self.keyboard)
         self.armLeftMove = self.canvas.create_image(375, 600, anchor=CENTER, image=self.armLeft)
 
-        master.bind("<KeyPress>", self.keyboard_press)
-        master.bind("<KeyRelease>", self.keyboard_up)
+        listener = Listener(on_press=self.keyboard_press, on_release=self.keyboard_up,suppress=True)
+        listener.start()
+
         thread = Thread(target = self.move_mousearm)
         thread.setDaemon(True)
         thread.start()
