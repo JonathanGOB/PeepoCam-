@@ -2,6 +2,18 @@ from tkinter import Tk, Label, PhotoImage, Canvas
 from tkinter.constants import CENTER
 from PIL import Image
 from PIL import ImageTk
+from ctypes import windll, Structure, c_long, byref
+from threading import Thread
+import pyautogui
+class POINT(Structure):
+    _fields_ = [("x", c_long), ("y", c_long)]
+
+
+
+def queryMousePosition():
+    pt = POINT()
+    windll.user32.GetCursorPos(byref(pt))
+    return { "x": pt.x, "y": pt.y}
 
 class PeepoCam:
 
@@ -26,7 +38,7 @@ class PeepoCam:
         self.canvas.create_image(self.background.width()/2, self.background.height()/2, anchor=CENTER, image=self.background)
         self.canvas.create_image(self.background.width()/2, self.background.height()/2, anchor=CENTER, image=self.table)
         self.canvas.create_image(self.background.width() - 220, self.background.height() - 220, anchor=CENTER, image=self.mousepad)
-        self.canvas.create_image(self.background.width() - 220, self.background.height() - 240, anchor=CENTER, image=self.mouse)
+        self.mouseMove = self.canvas.create_image(self.background.width() - 220, self.background.height() - 240, anchor=CENTER, image=self.mouse)
         self.armRightMove = self.canvas.create_image(650, 550, anchor=CENTER, image=self.armRight)
         self.canvas.create_image(self.background.width()/2 - 40, self.background.height()/2 - 33, anchor=CENTER, image=self.peepo)
         self.canvas.create_image(self.background.width() - 550, self.background.height() - 180, anchor=CENTER, image=self.keyboard)
@@ -34,6 +46,20 @@ class PeepoCam:
 
         master.bind("<KeyPress>", self.keyboard_press)
         master.bind("<KeyRelease>", self.keyboard_up)
+        thread = Thread(target = self.move_mousearm)
+        thread.setDaemon(True)
+        thread.start()
+    
+    def move_mousearm(self):
+        while True:
+            width, height = 450, 450
+            x, y = ((self.background.width() - 220) - width/2), ((self.background.height() - 220) - height/2)
+            screenwidth, screenheight = 1920, 1080
+            xmouse, ymouse = pyautogui.position()
+            translatedWidthSteps, translateHeightSteps = width/screenwidth, height/screenheight
+            print(x + (xmouse*translatedWidthSteps), y + (ymouse*translateHeightSteps))
+            self.canvas.move(self.mouseMove, x + (xmouse*translatedWidthSteps), y + (ymouse*translateHeightSteps))
+
 
     def create_resized_image(self, filename, width, height, angle=0):
         img = Image.open(filename)
