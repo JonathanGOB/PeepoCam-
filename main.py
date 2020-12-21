@@ -6,15 +6,20 @@ from threading import Thread
 import pyautogui
 import time
 from pynput.keyboard import Key, Listener, Controller
+from PIL import GifImagePlugin
+import copy
 
 class PeepoCam:
 
     keysPressed = None
 
     def __init__(self, master):
+
+        #setup master/root
         self.master = master
         master.title("PeepoCam!")
         
+        #init images
         self.armLeft = PhotoImage(file="peepo\\arms_rm.png")
         self.keyboard = self.create_resized_image("peepo\\keyboard.png", 800, 800)
         self.mousepad = self.create_resized_image("peepo\\mousemat_rm.png", 450, 450, angle=10)
@@ -23,11 +28,12 @@ class PeepoCam:
         self.peepo = PhotoImage(file="peepo\\peepo_half_white_removed.png")
         self.table = PhotoImage(file="peepo\\table.png")
         self.background = PhotoImage(file="peepo\\bg.png")
-        
+        self.frames, self.n_frames = self.get_frames("peepo\\200.gif", self.background.width(), self.background.height() - 200)
         self.canvas = Canvas(master, width = self.background.width(), height = self.background.height())  
         self.canvas.pack()
 
-        self.canvas.create_image(self.background.width()/2, self.background.height()/2, anchor=CENTER, image=self.background)
+        # setup in canvas
+        self.backgroundMove = self.canvas.create_image(self.background.width()/2, self.background.height()/2 - 200, anchor=CENTER, image=self.frames[0])
         self.canvas.create_image(self.background.width()/2, self.background.height()/2, anchor=CENTER, image=self.table)
         self.canvas.create_image(self.background.width() - 220, self.background.height() - 220, anchor=CENTER, image=self.mousepad)
         self.mouseMove = self.canvas.create_image(self.background.width() - 220, self.background.height() - 240, anchor=CENTER, image=self.mouse)
@@ -36,13 +42,43 @@ class PeepoCam:
         self.canvas.create_image(self.background.width() - 550, self.background.height() - 180, anchor=CENTER, image=self.keyboard)
         self.armLeftMove = self.canvas.create_image(375, 600, anchor=CENTER, image=self.armLeft)
 
+        #setup keyboard listener
         listener = Listener(on_press=self.keyboard_press, on_release=self.keyboard_up)
         listener.start()
 
+        thread_gif = Thread(target = self.update_frame)
+        thread_gif.setDaemon(True)
+        thread_gif.start()
+
+        #setup mouse 
         thread = Thread(target = self.move_mousearm)
         thread.setDaemon(True)
         thread.start()
+
+
+    def get_frames(self, gif, width, height):
+        size = width, height
+        imageObject = Image.open(gif)
+        frames = []
+        for frame in range(0,imageObject.n_frames):
+            imageObject.seek(frame)
+            img = copy.deepcopy(imageObject)
+            img = img.resize(size, Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(img) # convert to PhotoImage
+            frames.append(img)
+        return frames, imageObject.n_frames
     
+    def update_frame(self, fps = 10):
+        ind = 0
+        while True:
+            time.sleep(0.1)
+            frame = self.frames[ind]
+            ind += 1
+            if ind == self.n_frames:
+                ind = 0
+            self.canvas.itemconfig(self.backgroundMove, image = frame)
+
+
     def move_mousearm(self):
         quadrants = [False, False, False, False]
         while True:
