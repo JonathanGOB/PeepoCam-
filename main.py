@@ -28,7 +28,7 @@ class PeepoCam:
         self.peepo = PhotoImage(file="peepo\\peepo_half_white_removed.png")
         self.table = PhotoImage(file="peepo\\table.png")
         self.background = PhotoImage(file="peepo\\bg.png")
-        self.frames, self.n_frames = self.get_frames("peepo\\200.gif", self.background.width(), self.background.height() - 200)
+        self.frames, self.n_frames = self.get_frames("peepo\\giphy.gif", self.background.width(), self.background.height())
         self.canvas = Canvas(master, width = self.background.width(), height = self.background.height())  
         self.canvas.pack()
 
